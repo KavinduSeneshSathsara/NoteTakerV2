@@ -8,5 +8,4 @@ public class NoteCollectorV2Application {
 	public static void main(String[] args) {
 		SpringApplication.run(NoteCollectorV2Application.class, args);
 	}
-
 }
