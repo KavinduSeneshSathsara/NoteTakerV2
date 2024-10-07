@@ -1,9 +1,10 @@
 package lk.ijse.gdse.aad68.NoteCollectorV2.controller;
 
-import lk.ijse.gdse.aad68.notetaker.dto.impl.NoteDTO;
-import lk.ijse.gdse.aad68.notetaker.exception.NoteNotFound;
-import lk.ijse.gdse.aad68.notetaker.service.NoteService;
+import lk.ijse.gdse.aad68.NoteCollectorV2.dto.impl.NoteDTO;
+import lk.ijse.gdse.aad68.NoteCollectorV2.exception.NoteNotFound;
+import lk.ijse.gdse.aad68.NoteCollectorV2.service.NoteService;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

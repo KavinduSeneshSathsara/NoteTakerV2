@@ -1,6 +1,6 @@
 package lk.ijse.gdse.aad68.NoteCollectorV2.dto.impl;
 
-import lk.ijse.gdse.aad68.notetaker.dto.SuperDTO;
+import lk.ijse.gdse.aad68.NoteCollectorV2.dto.SuperDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
