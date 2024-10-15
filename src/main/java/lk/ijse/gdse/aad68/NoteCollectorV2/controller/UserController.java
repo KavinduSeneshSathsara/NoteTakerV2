@@ -1,10 +1,11 @@
 package lk.ijse.gdse.aad68.NoteCollectorV2.controller;
 
-import lk.ijse.gdse.aad68.notetaker.dto.impl.UserDTO;
-import lk.ijse.gdse.aad68.notetaker.exception.DataPersistFailedException;
-import lk.ijse.gdse.aad68.notetaker.exception.UserNotFoundException;
-import lk.ijse.gdse.aad68.notetaker.service.UserService;
-import lk.ijse.gdse.aad68.notetaker.util.AppUtil;
+import lk.ijse.gdse.aad68.NoteCollectorV2.customObj.UserResponse;
+import lk.ijse.gdse.aad68.NoteCollectorV2.dto.impl.UserDTO;
+import lk.ijse.gdse.aad68.NoteCollectorV2.exception.DataPersistFailedException;
+import lk.ijse.gdse.aad68.NoteCollectorV2.exception.UserNotFoundException;
+import lk.ijse.gdse.aad68.NoteCollectorV2.service.UserService;
+import lk.ijse.gdse.aad68.NoteCollectorV2.util.AppUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -12,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @RestController
@@ -20,19 +22,21 @@ import java.util.List;
 public class UserController {
     @Autowired
     private final UserService userService;
+
     //Save User
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> saveUser(
-         @RequestPart("firstName") String firstName,
-         @RequestPart ("lastName") String lastName,
-         @RequestPart ("email") String email,
-         @RequestPart ("password") String password,
-         @RequestPart ("profilePic") String profilePic) {
-        // Handle profile pic
+    public ResponseEntity<Void> saveUser(@RequestPart("firstName") String firstName,
+                                         @RequestPart ("lastName") String lastName,
+                                         @RequestPart ("email") String email,
+                                         @RequestPart ("password") String password,
+                                         @RequestPart ("profilePic") String profilePic) {
+
         try {
-            String base64ProfilePic = AppUtil.toBase64ProfilePic(profilePic);
+            // Handle profile pic
+            byte[] imageByteCollection = profilePic.getBytes();
+            String base64ProfilePic = AppUtil.toBase64ProfilePic(Arrays.toString(imageByteCollection));
             // build the user object
-            UserDTO buildUserDTO = new UserDTO();
+            var buildUserDTO = new UserDTO();
             buildUserDTO.setFirstName(firstName);
             buildUserDTO.setLastName(lastName);
             buildUserDTO.setEmail(email);
@@ -47,6 +51,7 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable ("id") String userId) {
         try {
@@ -58,22 +63,24 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping(value = "/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
     public UserResponse getSelectedUser(@PathVariable ("id") String userId){
         return userService.getSelectedUser(userId);
     }
+
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<UserDTO> getAllUsers(){
         return userService.getAllUsers();
     }
+
     @PatchMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> updateUser(
-             @PathVariable ("id") String id,
-             @RequestPart("updateFirstName") String updateFirstName,
-             @RequestPart ("updateLastName") String updateLastName,
-             @RequestPart ("updateEmail") String updateEmail,
-             @RequestPart ("updatePassword") String updatePassword,
-             @RequestPart ("updateProfilePic") String updateProfilePic
+    public ResponseEntity<Void> updateUser(@PathVariable ("id") String id,
+                                             @RequestPart("firstName") String updateFirstName,
+                                             @RequestPart ("lastName") String updateLastName,
+                                             @RequestPart ("email") String updateEmail,
+                                             @RequestPart ("password") String updatePassword,
+                                             @RequestPart ("profilePic") String updateProfilePic
     ){
         try {
             String updateBase64ProfilePic = AppUtil.toBase64ProfilePic(updateProfilePic);
@@ -84,6 +91,7 @@ public class UserController {
             updateUser.setPassword(updatePassword);
             updateUser.setEmail(updateEmail);
             updateUser.setProfilePic(updateBase64ProfilePic);
+
             userService.updateUser(updateUser);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch (UserNotFoundException e){
