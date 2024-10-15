@@ -1,10 +1,13 @@
 package lk.ijse.gdse.aad68.NoteCollectorV2.service;
 
 import jakarta.transaction.Transactional;
+import lk.ijse.gdse.aad68.NoteCollectorV2.customObj.NoteResponse;
 import lk.ijse.gdse.aad68.NoteCollectorV2.dao.NoteDao;
 import lk.ijse.gdse.aad68.NoteCollectorV2.dto.impl.NoteDTO;
 import lk.ijse.gdse.aad68.NoteCollectorV2.entity.NoteEntity;
+import lk.ijse.gdse.aad68.NoteCollectorV2.exception.DataPersistFailedException;
 import lk.ijse.gdse.aad68.NoteCollectorV2.exception.NoteNotFound;
+import lk.ijse.gdse.aad68.NoteCollectorV2.exception.NoteNotFoundException;
 import lk.ijse.gdse.aad68.NoteCollectorV2.util.AppUtil;
 import lk.ijse.gdse.aad68.NoteCollectorV2.util.Mapping;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +25,12 @@ public  class NoteServiceIMPL implements NoteService {
     private Mapping mapping;
 
     @Override
-    public String saveNote(NoteDTO noteDTO) {
+    public void saveNote(NoteDTO noteDTO) {
         noteDTO.setNoteId(AppUtil.createNoteId());
-        var noteEntity = mapping.convertToEntity(noteDTO);
-        noteDao.save(noteEntity);
-        return "Saved successfully in Service layer";
+        NoteEntity savedNote = noteDao.save(mapping.convertToEntity(noteDTO));
+        if (savedNote == null && savedNote.getNoteId() == null){
+            throw new DataPersistFailedException("Can't save the note!");
+        }
     }
 
     @Override
@@ -43,14 +47,13 @@ public  class NoteServiceIMPL implements NoteService {
     }
 
     @Override
-    public boolean deleteNote(String noteId) {
-//        noteDao.deleteById(noteId);
-         if(noteDao.existsById(noteId)){
-             noteDao.deleteById(noteId);
-             return true;
-         }else {
-             return false;
-         }
+    public void deleteNote(String noteId) {
+        Optional<NoteEntity> selectedNote = noteDao.findById(noteId);
+        if (!selectedNote.isPresent()){
+            throw new NoteNotFoundException("Note Not Found!");
+        }else {
+            noteDao.deleteById(noteId);
+        }
     }
 
     @Override
@@ -60,9 +63,6 @@ public  class NoteServiceIMPL implements NoteService {
 
     @Override
     public List<NoteDTO> getAllNotes() {
-//        List<NoteEntity> getAllNotes = noteDao.findAll();
-//        List<NoteDTO> noteDTOS = mapping.convertToDTO(getAllNotes);
-//        return noteDTOS;
         return mapping.convertToDTO(noteDao.findAll());
 
     }

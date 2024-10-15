@@ -13,6 +13,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 @RestController
@@ -21,26 +23,30 @@ import java.util.List;
 public class UserController {
     @Autowired
     private final UserService userService;
+
     //Save User
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> saveUser(
-         @RequestPart("firstName") String firstName,
-         @RequestPart ("lastName") String lastName,
-         @RequestPart ("email") String email,
-         @RequestPart ("password") String password,
-         @RequestPart ("profilePic") String profilePic) {
-        // Handle profile pic
+    public ResponseEntity<Void> saveUser(@RequestPart("firstName") String firstName,
+                                         @RequestPart ("lastName") String lastName,
+                                         @RequestPart ("email") String email,
+                                         @RequestPart ("password") String password,
+                                         @RequestPart ("profilePic") String profilePic) {
         try {
-            String base64ProfilePic = AppUtil.toBase64ProfilePic(profilePic);
-            // build the user object
-            UserDTO buildUserDTO = new UserDTO();
-            buildUserDTO.setFirstName(firstName);
-            buildUserDTO.setLastName(lastName);
-            buildUserDTO.setEmail(email);
-            buildUserDTO.setPassword(password);
-            buildUserDTO.setProfilePic(base64ProfilePic);
+            // Convert the profilePic String (assuming it's a file path or base64 string) to byte[]
+            byte[] imageByteCollection = profilePic.getBytes(); // Modify this if you get the image differently
+
+            // Convert byte array to Base64 String
+            String base64ProfilePic = Base64.getEncoder().encodeToString(imageByteCollection);
+
+            var buildUserDto = new UserDTO();
+            buildUserDto.setFirstName(firstName);
+            buildUserDto.setLastName(lastName);
+            buildUserDto.setEmail(email);
+            buildUserDto.setPassword(password);
+            buildUserDto.setProfilePic(base64ProfilePic);
+
             //send to the service layer
-            userService.saveUser(buildUserDTO);
+            userService.saveUser(buildUserDto);
             return new ResponseEntity<>(HttpStatus.CREATED);
         }catch (DataPersistFailedException e){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -48,6 +54,7 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable ("id") String userId) {
         try {
@@ -59,14 +66,17 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @GetMapping(value = "/{id}",produces = MediaType.APPLICATION_JSON_VALUE)
     public UserResponse getSelectedUser(@PathVariable ("id") String userId){
         return userService.getSelectedUser(userId);
     }
+
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<UserDTO> getAllUsers(){
         return userService.getAllUsers();
     }
+
     @PatchMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateUser(
              @PathVariable ("id") String id,
@@ -77,14 +87,18 @@ public class UserController {
              @RequestPart ("updateProfilePic") String updateProfilePic
     ){
         try {
-            String updateBase64ProfilePic = AppUtil.toBase64ProfilePic(updateProfilePic);
+            byte[] imageByteCollection = updateProfilePic.getBytes();
+
+            String base64ProfilePic = Base64.getEncoder().encodeToString(imageByteCollection);
+
             var updateUser = new UserDTO();
             updateUser.setUserId(id);
+            updateUser.setEmail(updateEmail);
             updateUser.setFirstName(updateFirstName);
             updateUser.setLastName(updateLastName);
             updateUser.setPassword(updatePassword);
-            updateUser.setEmail(updateEmail);
-            updateUser.setProfilePic(updateBase64ProfilePic);
+            updateUser.setProfilePic(base64ProfilePic);
+
             userService.updateUser(updateUser);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch (UserNotFoundException e){

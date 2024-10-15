@@ -1,0 +1,9 @@
+#spring.application.name=NoteTakerV2
+#server.port=5055
+
+#spring:
+#  application:
+#    name: NoteTakerV2
+#
+#server:
+#  port : 5055

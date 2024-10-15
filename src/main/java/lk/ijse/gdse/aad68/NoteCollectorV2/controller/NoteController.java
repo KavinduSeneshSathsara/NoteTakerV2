@@ -1,7 +1,9 @@
 package lk.ijse.gdse.aad68.NoteCollectorV2.controller;
 
 import lk.ijse.gdse.aad68.NoteCollectorV2.dto.impl.NoteDTO;
+import lk.ijse.gdse.aad68.NoteCollectorV2.exception.DataPersistFailedException;
 import lk.ijse.gdse.aad68.NoteCollectorV2.exception.NoteNotFound;
+import lk.ijse.gdse.aad68.NoteCollectorV2.exception.NoteNotFoundException;
 import lk.ijse.gdse.aad68.NoteCollectorV2.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.weaver.ast.Not;
@@ -19,27 +21,41 @@ import java.util.List;
 public class NoteController {
     @Autowired
     private final NoteService noteService;
-    @GetMapping("health")
-    public String healthCheck() {
-        return "Note taker is running";
-    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> createNote(@RequestBody NoteDTO note) {
-        var saveData = noteService.saveNote(note);
-        return ResponseEntity.ok(saveData);
+        if (note == null) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }else {
+            try{
+                noteService.saveNote(note);
+                return new ResponseEntity<>(HttpStatus.CREATED);
+            }catch (DataPersistFailedException e){
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
     }
+
     @GetMapping(value = "allnotes", produces = MediaType.APPLICATION_JSON_VALUE)
     public List<NoteDTO> getAllNotes(){
         return noteService.getAllNotes();
     }
+
     @GetMapping(value = "/{noteId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public NoteDTO getNote(@PathVariable ("noteId") String noteId)  {
         return noteService.getSelectedNote(noteId);
     }
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PatchMapping(value = "/{noteId}",produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> updateNote(@PathVariable ("noteId") String noteId, @RequestBody NoteDTO note) {
         try {
+            if (note == null && (noteId == null || note.equals(""))) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
             noteService.updateNote(noteId, note);
              return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch (NoteNotFound e){
@@ -48,8 +64,15 @@ public class NoteController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     @DeleteMapping(value ="/{noteId}" )
     public ResponseEntity<String> deleteNote(@PathVariable ("noteId") String noteId) {
-       return noteService.deleteNote(noteId) ? new ResponseEntity<>(HttpStatus.NO_CONTENT) : new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    }
+        try{
+            noteService.deleteNote(noteId);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }catch (NoteNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }    }
 }
