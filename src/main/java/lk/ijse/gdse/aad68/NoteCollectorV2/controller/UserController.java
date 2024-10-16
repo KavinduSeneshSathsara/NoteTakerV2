@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,33 +25,33 @@ public class UserController {
     private final UserService userService;
 
     //Save User
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> saveUser(@RequestPart("firstName") String firstName,
-                                         @RequestPart ("lastName") String lastName,
-                                         @RequestPart ("email") String email,
-                                         @RequestPart ("password") String password,
-                                         @RequestPart ("profilePic") String profilePic) {
-
-        try {
-            // Handle profile pic
-            byte[] imageByteCollection = profilePic.getBytes();
-            String base64ProfilePic = AppUtil.toBase64ProfilePic(Arrays.toString(imageByteCollection));
-            // build the user object
-            var buildUserDTO = new UserDTO();
-            buildUserDTO.setFirstName(firstName);
-            buildUserDTO.setLastName(lastName);
-            buildUserDTO.setEmail(email);
-            buildUserDTO.setPassword(password);
-            buildUserDTO.setProfilePic(base64ProfilePic);
-            //send to the service layer
-            userService.saveUser(buildUserDTO);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        }catch (DataPersistFailedException e){
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }catch (Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<Void> saveUser(@RequestPart("firstName") String firstName,
+//                                         @RequestPart ("lastName") String lastName,
+//                                         @RequestPart ("email") String email,
+//                                         @RequestPart ("password") String password,
+//                                         @RequestPart ("profilePic") String profilePic) {
+//
+//        try {
+//            // Handle profile pic
+//            byte[] imageByteCollection = profilePic.getBytes();
+//            String base64ProfilePic = AppUtil.toBase64ProfilePic(Arrays.toString(imageByteCollection));
+//            // build the user object
+//            var buildUserDTO = new UserDTO();
+//            buildUserDTO.setFirstName(firstName);
+//            buildUserDTO.setLastName(lastName);
+//            buildUserDTO.setEmail(email);
+//            buildUserDTO.setPassword(password);
+//            buildUserDTO.setProfilePic(base64ProfilePic);
+//            //send to the service layer
+//            userService.saveUser(buildUserDTO);
+//            return new ResponseEntity<>(HttpStatus.CREATED);
+//        }catch (DataPersistFailedException e){
+//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+//        }catch (Exception e){
+//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable ("id") String userId) {
@@ -75,12 +76,13 @@ public class UserController {
     }
 
     @PatchMapping(value = "/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> updateUser(@PathVariable ("id") String id,
-                                             @RequestPart("firstName") String updateFirstName,
-                                             @RequestPart ("lastName") String updateLastName,
-                                             @RequestPart ("email") String updateEmail,
-                                             @RequestPart ("password") String updatePassword,
-                                             @RequestPart ("profilePic") String updateProfilePic
+    public ResponseEntity<Void> updateUser(
+            @PathVariable ("id") String id,
+            @RequestPart("updateFirstName") String updateFirstName,
+            @RequestPart ("updateLastName") String updateLastName,
+            @RequestPart ("updateEmail") String updateEmail,
+            @RequestPart ("updatePassword") String updatePassword,
+            @RequestPart ("updateProfilePic") MultipartFile updateProfilePic
     ){
         try {
             String updateBase64ProfilePic = AppUtil.toBase64ProfilePic(updateProfilePic);
@@ -91,7 +93,6 @@ public class UserController {
             updateUser.setPassword(updatePassword);
             updateUser.setEmail(updateEmail);
             updateUser.setProfilePic(updateBase64ProfilePic);
-
             userService.updateUser(updateUser);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }catch (UserNotFoundException e){
