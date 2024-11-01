@@ -2,6 +2,7 @@ package lk.ijse.gdse.aad68.NoteCollectorV2.util;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -14,13 +15,12 @@ public class AppUtil {
         return "USER-"+UUID.randomUUID();
     }
     public static String toBase64ProfilePic(MultipartFile profilePic){
-        String proPicBase64 = null;
+        byte[] profilePicBytes = null;
         try {
-            byte [] proPicBytes = profilePic.getBytes();
-            proPicBase64 =  Base64.getEncoder().encodeToString(proPicBytes);
-        }catch (Exception e){
-            e.printStackTrace();
+            profilePicBytes = profilePic.getBytes();
+        }catch (IOException e){
+            throw new RuntimeException(e);
         }
-        return proPicBase64;
+        return Base64.getEncoder().encodeToString(profilePicBytes);
     }
 }

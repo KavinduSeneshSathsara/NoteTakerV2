@@ -25,33 +25,32 @@ public class UserController {
     private final UserService userService;
 
     //Save User
-//    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<Void> saveUser(@RequestPart("firstName") String firstName,
-//                                         @RequestPart ("lastName") String lastName,
-//                                         @RequestPart ("email") String email,
-//                                         @RequestPart ("password") String password,
-//                                         @RequestPart ("profilePic") String profilePic) {
-//
-//        try {
-//            // Handle profile pic
-//            byte[] imageByteCollection = profilePic.getBytes();
-//            String base64ProfilePic = AppUtil.toBase64ProfilePic(Arrays.toString(imageByteCollection));
-//            // build the user object
-//            var buildUserDTO = new UserDTO();
-//            buildUserDTO.setFirstName(firstName);
-//            buildUserDTO.setLastName(lastName);
-//            buildUserDTO.setEmail(email);
-//            buildUserDTO.setPassword(password);
-//            buildUserDTO.setProfilePic(base64ProfilePic);
-//            //send to the service layer
-//            userService.saveUser(buildUserDTO);
-//            return new ResponseEntity<>(HttpStatus.CREATED);
-//        }catch (DataPersistFailedException e){
-//            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-//        }catch (Exception e){
-//            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> saveUser(
+            @RequestPart("firstName") String firstName,
+            @RequestPart("lastName") String lastName,
+            @RequestPart("email") String email,
+            @RequestPart("password") String password,
+            @RequestPart("profilePic") MultipartFile profilePic
+    ) {
+        try {
+            String base64ProfilePic = AppUtil.toBase64ProfilePic(profilePic); //Base64 encoding used to convert the image to a  string
+            //build the user object
+            UserDTO buildUserDto = new UserDTO();
+            buildUserDto.setFirstName(firstName);
+            buildUserDto.setLastName(lastName);
+            buildUserDto.setEmail(email);
+            buildUserDto.setPassword(password);
+            buildUserDto.setProfilePic(base64ProfilePic);
+            //send to the service layer
+            userService.saveUser(buildUserDto);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (DataPersistFailedException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable ("id") String userId) {
